@@ -23,10 +23,10 @@
       <section id="authorityGate" class="card authority-gate">
         <div>
           <p class="eyebrow">AUTHORIZED CONTROL</p>
-          <h2>Scan the bottle QR or authority barcode</h2>
-          <p>Temperature controls remain locked until an approved code is verified.</p>
+          <h2>Scan the authority barcode</h2>
+          <p>Temperature controls remain locked until an approved barcode is verified.</p>
         </div>
-        <button id="startScanBtn" class="primary-button">Start camera scan</button>
+        <button id="startScanBtn" class="primary-button">Start barcode scan</button>
       </section>
 
       <main class="dashboard">
@@ -50,11 +50,23 @@
 
           <div class="target-row">
             <label for="targetInput">Set target temperature</label>
-            <div class="control-group">
-              <input id="targetInput" type="number" min="32.5" max="40" step="0.5" value="36" />
-              <button id="applyTargetBtn">Apply</button>
+            <div class="target-adjuster">
+              <button id="targetMinusBtn" class="target-step-button" type="button" aria-label="Decrease target">−</button>
+              <div class="target-input-wrap">
+                <input id="targetInput" type="number" min="32.5" max="40" step="0.5" value="36" />
+                <span>°C</span>
+              </div>
+              <button id="targetPlusBtn" class="target-step-button" type="button" aria-label="Increase target">+</button>
+              <button id="applyTargetBtn" type="button">Apply target</button>
             </div>
-            <small class="range-note">Safe operating range: 32.5 °C to 40.0 °C</small>
+            <div class="target-presets" aria-label="Common target temperatures">
+              <button type="button" class="target-preset" data-target="35">35°C</button>
+              <button type="button" class="target-preset" data-target="36">36°C</button>
+              <button type="button" class="target-preset" data-target="37">37°C</button>
+              <button type="button" class="target-preset" data-target="38">38°C</button>
+              <button type="button" class="target-preset" data-target="40">40°C</button>
+            </div>
+            <small id="targetRangeNote" class="range-note">Safe range: 32.5 °C to 40.0 °C</small>
           </div>
 
           <div class="button-row">
@@ -64,30 +76,27 @@
 
           <div class="button-row secondary-row">
             <button id="sensorErrorBtn" class="danger-button">Sensor fault</button>
-            <button id="requestQrBtn" class="secondary-button">Generate QR access</button>
           </div>
         </section>
 
         <section class="card graph-panel">
           <div class="graph-header">
             <h2>Temperature history</h2>
-            <span id="heaterBadge" class="heater-badge off">Heater OFF</span>
+            <div class="graph-badges">
+              <span id="telemetryBadge" class="heater-badge off">Simulation data</span>
+              <span id="heaterBadge" class="heater-badge off">Heater OFF</span>
+            </div>
           </div>
           <svg id="chart" viewBox="0 0 500 220" preserveAspectRatio="none" aria-label="Temperature history chart"></svg>
         </section>
 
         <section class="card qr-panel">
-          <h2>Secure QR / barcode access</h2>
+          <h2>Secure barcode access</h2>
           <div class="qr-layout">
-            <div class="scanner-box">
-              <video id="qrVideo" autoplay playsinline muted></video>
-              <canvas id="qrCanvas" width="280" height="210"></canvas>
-              <div class="scanner-overlay"></div>
-            </div>
             <div class="qr-info">
-              <p id="qrStatus">Ready for secure bottle authentication.</p>
-              <input id="qrCodeInput" type="text" placeholder="Scan or paste QR code" />
-              <button id="verifyQrBtn" class="primary-button">Verify access</button>
+              <p id="qrStatus">Ready for secure barcode authentication.</p>
+              <input id="qrCodeInput" type="text" placeholder="Scan or paste authority barcode" autocomplete="off" />
+              <button id="verifyQrBtn" class="primary-button">Verify barcode</button>
             </div>
           </div>
         </section>
@@ -95,7 +104,7 @@
         <section class="card safety-panel">
           <h2>Safety & operation</h2>
           <ul>
-            <li id="safetyMessage">The heating system will operate only when the bottle is within a safe target range and the QR verification passes.</li>
+            <li id="safetyMessage">The heating system will operate only after valid barcode authority verification.</li>
             <li>Use only a bottle rated for warm liquids and never seal it during a test.</li>
             <li>Keep electrical parts dry and disconnect power after testing.</li>
           </ul>
@@ -103,7 +112,6 @@
       </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
   </body>
 </html>

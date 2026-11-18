@@ -16,6 +16,7 @@ AUTHORITY_CODE = os.environ.get("TEMPMATE_AUTHORITY_CODE", "AETHER-AUTHORITY-202
 app.secret_key = os.environ.get("TEMPMATE_SESSION_SECRET", "AETHER_TEMPMATE_SESSION_SECRET_2026")
 MIN_TARGET = 32.5
 MAX_TARGET = 40.0
+TELEMETRY_KEY = os.environ.get("TEMPMATE_TELEMETRY_KEY", "AETHER-WOKWI-2026")
 
 
 def _make_qr_token(device_id: str) -> str:
@@ -64,8 +65,10 @@ class TempMateController:
     heater_on: bool = False
     sensor_error: bool = False
     manual_stop: bool = False
+    external_temperature: float | None = None
+    last_telemetry_at: float | None = None
     history: list[dict[str, Any]] = field(default_factory=list)
-    lock: threading.Lock = field(default_factory=threading.Lock)
+    lock: threading.RLock = field(default_factory=threading.RLock)
 
     def __post_init__(self) -> None:
         self.lower_threshold = max(MIN_TARGET, self.target - 2.0)
@@ -110,8 +113,22 @@ class TempMateController:
         self.heater_on = False
         self.sensor_error = False
         self.manual_stop = False
+        self.external_temperature = None
+        self.last_telemetry_at = None
         self.history = []
         self._record_point()
+
+    def receive_telemetry(self, temperature: float, sensor_error: bool = False, heater_on: bool = False) -> dict[str, Any]:
+        with self.lock:
+            temperature = round(float(temperature), 2)
+            if temperature < -20 or temperature > 150:
+                raise ValueError("Temperature must be between -20 and 150 °C.")
+            self.external_temperature = temperature
+            self.temperature = temperature
+            self.last_telemetry_at = time.time()
+            self.sensor_error = bool(sensor_error)
+            self._record_point()
+            return self.update()
 
     def _record_point(self) -> None:
         self.history.append({"time": time.time(), "temperature": round(self.temperature, 2)})
@@ -120,12 +137,29 @@ class TempMateController:
 
     def update(self) -> dict[str, Any]:
         with self.lock:
+            telemetry_stale = (
+                self.last_telemetry_at is not None
+                and time.time() - self.last_telemetry_at > 15
+            )
+
             if self.sensor_error:
                 state = "SENSOR ERROR"
                 self.heater_on = False
             elif self.manual_stop or not self.system_enabled:
                 state = "OFF"
                 self.heater_on = False
+            elif telemetry_stale:
+                state = "SIGNAL LOST"
+                self.heater_on = False
+            elif self.external_temperature is not None:
+                if self.temperature >= self.target:
+                    state = "HOLD"
+                    self.heater_on = False
+                elif self.temperature <= self.lower_threshold:
+                    state = "HEATING"
+                    self.heater_on = True
+                else:
+                    state = "HEATING" if self.heater_on else "HOLD"
             elif self.temperature >= self.target:
                 state = "HOLD"
                 self.heater_on = False
@@ -136,10 +170,11 @@ class TempMateController:
                 state = "HOLD" if self.heater_on else "HEATING"
                 self.heater_on = self.heater_on or state == "HEATING"
 
-            if self.heater_on and not self.sensor_error and not self.manual_stop and self.system_enabled:
-                self.temperature = round(min(MAX_TARGET + 5.0, self.temperature + 0.35), 2)
-            else:
-                self.temperature = round(max(15.0, self.temperature - 0.12), 2)
+            if self.external_temperature is None:
+                if self.heater_on and not self.sensor_error and not self.manual_stop and self.system_enabled:
+                    self.temperature = round(min(MAX_TARGET + 5.0, self.temperature + 0.35), 2)
+                else:
+                    self.temperature = round(max(15.0, self.temperature - 0.12), 2)
 
             self._record_point()
 
@@ -152,6 +187,8 @@ class TempMateController:
                 "sensor_error": self.sensor_error,
                 "manual_stop": self.manual_stop,
                 "system_enabled": self.system_enabled,
+                "external_temperature": self.external_temperature,
+                "telemetry_connected": self.last_telemetry_at is not None and not telemetry_stale,
                 "history": list(self.history),
             }
 
@@ -162,6 +199,36 @@ controller = TempMateController()
 @app.route("/")
 def index() -> str:
     return render_template("index.html")
+
+
+@app.route("/api/telemetry", methods=["POST", "OPTIONS"])
+def api_telemetry():
+    if request.method == "OPTIONS":
+        return jsonify({"ok": True})
+    supplied_key = request.headers.get("X-TempMate-Key")
+    if not supplied_key or not hmac.compare_digest(supplied_key, TELEMETRY_KEY):
+        return jsonify({"error": "Invalid telemetry key."}), 401
+    payload = request.get_json(silent=True) or {}
+    temperature = payload.get("temperature")
+    if temperature is None:
+        return jsonify({"error": "temperature is required."}), 400
+    try:
+        status = controller.receive_telemetry(
+            float(temperature),
+            bool(payload.get("sensor_error", False)),
+            bool(payload.get("heater_on", False)),
+        )
+    except (TypeError, ValueError) as error:
+        return jsonify({"error": str(error)}), 400
+    return jsonify({"ok": True, "status": status})
+
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers.setdefault("Access-Control-Allow-Origin", "*")
+    response.headers.setdefault("Access-Control-Allow-Headers", "Content-Type, X-TempMate-Key")
+    response.headers.setdefault("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    return response
 
 
 @app.route("/api/status")
@@ -226,11 +293,11 @@ def api_qr_validate():
     payload = request.get_json(silent=True) or {}
     qr_code = payload.get("qrCode")
     if not qr_code:
-        return jsonify({"valid": False, "message": "A QR code or barcode is required."}), 400
+        return jsonify({"valid": False, "message": "An authority barcode is required."}), 400
     valid = _verify_authority_code(qr_code)
     if valid:
         session["authority_authorized"] = True
-    return jsonify({"valid": valid, "authorized": valid, "message": "Authority access approved." if valid else "Invalid QR/barcode. Access denied."})
+    return jsonify({"valid": valid, "authorized": valid, "message": "Authority barcode approved." if valid else "Invalid barcode. Access denied."})
 
 
 @app.route("/api/authority/logout", methods=["POST"])
@@ -246,6 +313,21 @@ def api_reset():
         return denied
     controller.reset()
     return jsonify(controller.update())
+
+
+@app.route("/api/control", methods=["GET"])
+def api_control():
+    supplied_key = request.headers.get("X-TempMate-Key")
+    if not supplied_key or not hmac.compare_digest(supplied_key, TELEMETRY_KEY):
+        return jsonify({"error": "Invalid telemetry key."}), 401
+    status = controller.update()
+    return jsonify({
+        "heater_on": status["heater_on"] and not status["sensor_error"],
+        "target": status["target"],
+        "lower_threshold": status["lower_threshold"],
+        "temperature": status["temperature"],
+        "state": status["state"],
+    })
 
 
 if __name__ == "__main__":

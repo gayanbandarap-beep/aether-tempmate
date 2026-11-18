@@ -2,13 +2,15 @@ const temperatureValue = document.querySelector('#temperatureValue');
 const targetValue = document.querySelector('#targetValue');
 const stateValue = document.querySelector('#stateValue');
 const heaterBadge = document.querySelector('#heaterBadge');
+const telemetryBadge = document.querySelector('#telemetryBadge');
 const targetInput = document.querySelector('#targetInput');
 const applyTargetBtn = document.querySelector('#applyTargetBtn');
+const targetMinusBtn = document.querySelector('#targetMinusBtn');
+const targetPlusBtn = document.querySelector('#targetPlusBtn');
+const targetRangeNote = document.querySelector('#targetRangeNote');
 const systemToggleBtn = document.querySelector('#systemToggleBtn');
 const stopBtn = document.querySelector('#stopBtn');
 const sensorErrorBtn = document.querySelector('#sensorErrorBtn');
-const requestQrBtn = document.querySelector('#requestQrBtn');
-const verifyQrBtn = document.querySelector('#verifyQrBtn');
 const qrCodeInput = document.querySelector('#qrCodeInput');
 const qrStatus = document.querySelector('#qrStatus');
 const resetBtn = document.querySelector('#resetBtn');
@@ -39,7 +41,8 @@ function setStatePill(state) {
     HEATING: { bg: 'rgba(62, 231, 165, 0.18)', text: '#3ee7a5' },
     HOLD: { bg: 'rgba(255, 200, 87, 0.18)', text: '#ffc857' },
     OFF: { bg: 'rgba(149, 195, 229, 0.12)', text: '#a9c0d6' },
-    'SENSOR ERROR': { bg: 'rgba(255, 95, 115, 0.14)', text: '#ff5f73' }
+    'SENSOR ERROR': { bg: 'rgba(255, 95, 115, 0.14)', text: '#ff5f73' },
+    'SIGNAL LOST': { bg: 'rgba(255, 95, 115, 0.14)', text: '#ff5f73' }
   };
 
   const colors = palette[state] || palette.OFF;
@@ -80,19 +83,27 @@ function updateUi(data) {
   authorityBadge.classList.toggle('approved', authorized);
   logoutBtn.hidden = !authorized;
 
-  [applyTargetBtn, systemToggleBtn, stopBtn, sensorErrorBtn, resetBtn].forEach((button) => {
+  [applyTargetBtn, targetMinusBtn, targetPlusBtn, systemToggleBtn, stopBtn, sensorErrorBtn, resetBtn, ...document.querySelectorAll('.target-preset')].forEach((button) => {
     button.disabled = !authorized;
   });
 
   temperatureValue.textContent = `${data.temperature.toFixed(1)} °C`;
   targetValue.textContent = `${data.target.toFixed(1)} °C`;
   targetInput.value = data.target.toFixed(1);
+  targetRangeNote.textContent = `Safe range: 32.5 °C to 40.0 °C · Heater restarts below ${data.lower_threshold.toFixed(1)} °C`;
+  document.querySelectorAll('.target-preset').forEach((button) => {
+    button.classList.toggle('active', Number(button.dataset.target) === data.target);
+  });
   setStatePill(data.state);
 
   const heaterEnabled = data.heater_on && !data.sensor_error && !data.manual_stop && data.system_enabled;
   heaterBadge.textContent = heaterEnabled ? 'Heater ON' : 'Heater OFF';
   heaterBadge.classList.toggle('on', heaterEnabled);
   heaterBadge.classList.toggle('off', !heaterEnabled);
+
+  telemetryBadge.textContent = data.telemetry_connected ? 'Wokwi live' : 'Simulation data';
+  telemetryBadge.classList.toggle('on', Boolean(data.telemetry_connected));
+  telemetryBadge.classList.toggle('off', !data.telemetry_connected);
 
   systemToggleBtn.textContent = data.system_enabled ? 'System ON' : 'System OFF';
   systemToggleBtn.classList.toggle('primary-button', data.system_enabled);
@@ -112,6 +123,8 @@ function updateUi(data) {
         : 'The system is currently disabled for safety.';
 
   renderChart(data.history);
+
+  telemetryBadge.textContent = `Telemetry: ${data.telemetryStatus}`;
 }
 
 async function refreshStatus() {
@@ -180,20 +193,21 @@ sensorErrorBtn.addEventListener('click', async () => {
   }
 });
 
-requestQrBtn.addEventListener('click', async () => {
+resetBtn.addEventListener('click', async () => {
   try {
-    const data = await fetchJson('/api/qr/challenge');
-    qrStatus.textContent = `Device: ${data.deviceId}. Use the QR access code to unlock the system.`;
-    qrCodeInput.value = data.qrCode;
+    const data = await fetchJson('/api/reset', { method: 'POST' });
+    updateUi(data);
+    qrStatus.textContent = 'System reset complete. Ready for secure authentication.';
+    qrCodeInput.value = '';
   } catch (error) {
-    qrStatus.textContent = `QR generation failed: ${error.message}`;
+    qrStatus.textContent = error.message;
   }
 });
 
 verifyQrBtn.addEventListener('click', async () => {
   const code = qrCodeInput.value.trim();
   if (!code) {
-    qrStatus.textContent = 'Paste or scan a valid QR code to continue.';
+    qrStatus.textContent = 'Scan or enter a valid authority barcode to continue.';
     return;
   }
 
@@ -216,75 +230,58 @@ verifyQrBtn.addEventListener('click', async () => {
   }
 });
 
-resetBtn.addEventListener('click', async () => {
-  try {
-    const data = await fetchJson('/api/reset', { method: 'POST' });
-    updateUi(data);
-    qrStatus.textContent = 'System reset complete. Ready for secure authentication.';
-    qrCodeInput.value = '';
-  } catch (error) {
-    qrStatus.textContent = error.message;
+async function startBarcodeScanner() {
+  if (!('BarcodeDetector' in window)) {
+    qrStatus.textContent = 'Camera barcode scanning is unavailable. Use an external barcode scanner or enter the code manually.';
+    qrCodeInput.focus();
+    return;
   }
-});
 
-async function startQrScanner() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    qrStatus.textContent = 'This browser does not support camera QR scanning.';
+    qrStatus.textContent = 'Camera access is unavailable. Use an external barcode scanner or enter the code manually.';
+    qrCodeInput.focus();
     return;
   }
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    qrVideo.srcObject = stream;
-    qrVideo.play();
-    qrStatus.textContent = 'Scanning for a valid Aether QR code...';
+    const video = document.createElement('video');
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+    video.srcObject = stream;
+    await video.play();
 
-    const canvas = qrCanvas;
-    const context = canvas.getContext('2d');
-    const barcodeDetector = 'BarcodeDetector' in window
-      ? new window.BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13', 'ean_8', 'code_39', 'upc_a', 'upc_e'] })
-      : null;
+    qrStatus.textContent = 'Scanning for an authority barcode...';
+    const detector = new BarcodeDetector({
+      formats: ['code_128', 'ean_13', 'ean_8', 'code_39', 'upc_a', 'upc_e']
+    });
 
     const scanInterval = setInterval(async () => {
-      if (qrVideo.readyState === qrVideo.HAVE_CURRENT_DATA) {
-        context.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, canvas.width, canvas.height, {
-          inversionAttempts: 'dontInvert'
-        });
-
-        if (code) {
-          qrCodeInput.value = code.data;
-          qrStatus.textContent = 'QR code detected. Verifying integrity...';
+      try {
+        const barcodes = await detector.detect(video);
+        if (barcodes.length > 0) {
+          qrCodeInput.value = barcodes[0].rawValue;
+          qrStatus.textContent = 'Barcode detected. Verifying authority...';
           clearInterval(scanInterval);
           stream.getTracks().forEach((track) => track.stop());
           verifyQrBtn.click();
-        } else if (barcodeDetector) {
-          try {
-            const barcodes = await barcodeDetector.detect(canvas);
-            if (barcodes.length > 0) {
-              qrCodeInput.value = barcodes[0].rawValue;
-              qrStatus.textContent = 'Barcode detected. Verifying integrity...';
-              clearInterval(scanInterval);
-              stream.getTracks().forEach((track) => track.stop());
-              verifyQrBtn.click();
-            }
-          } catch (error) {
-            console.error('Barcode detection error:', error);
-          }
         }
+      } catch (error) {
+        console.error('Barcode detection error:', error);
       }
     }, 500);
   } catch (error) {
-    qrStatus.textContent = 'Camera access was denied. You can still paste a QR code manually.';
+    qrStatus.textContent = 'Camera access was denied. Use an external barcode scanner or enter the code manually.';
+    qrCodeInput.focus();
   }
 }
 
-qrVideo.addEventListener('click', startQrScanner);
 startScanBtn.addEventListener('click', () => {
   document.querySelector('.qr-panel').scrollIntoView({ behavior: 'smooth' });
-  startQrScanner();
+  startBarcodeScanner();
 });
+
 logoutBtn.addEventListener('click', async () => {
   try {
     await fetchJson('/api/authority/logout', { method: 'POST' });
@@ -300,5 +297,22 @@ setInterval(refreshStatus, 1500);
 
 window.addEventListener('load', () => {
   qrCodeInput.value = '';
-  qrStatus.textContent = 'Ready for secure bottle authentication.';
+  qrStatus.textContent = 'Ready for secure barcode authentication.';
+});
+
+targetMinusBtn.addEventListener('click', () => {
+  const next = Math.max(32.5, Number(targetInput.value) - 0.5);
+  targetInput.value = next.toFixed(1);
+});
+
+targetPlusBtn.addEventListener('click', () => {
+  const next = Math.min(40, Number(targetInput.value) + 0.5);
+  targetInput.value = next.toFixed(1);
+});
+
+document.querySelectorAll('.target-preset').forEach((button) => {
+  button.addEventListener('click', () => {
+    targetInput.value = Number(button.dataset.target).toFixed(1);
+    applyTargetBtn.click();
+  });
 });

@@ -357,6 +357,64 @@ button:disabled {
   transform: none;
 }
 
+.graph-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.target-adjuster {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.target-input-wrap {
+  position: relative;
+}
+
+.target-input-wrap input {
+  width: 100%;
+  padding-right: 34px;
+}
+
+.target-input-wrap span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.target-step-button {
+  background: rgba(77, 208, 255, 0.14);
+  color: var(--primary);
+  border: 1px solid rgba(77, 208, 255, 0.28);
+  font-size: 1.25rem;
+  padding: 8px;
+}
+
+.target-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.target-preset {
+  padding: 8px 4px;
+  background: rgba(149, 195, 229, 0.1);
+  color: var(--muted);
+  border: 1px solid rgba(149, 195, 229, 0.18);
+}
+
+.target-preset.active {
+  background: rgba(77, 208, 255, 0.18);
+  color: var(--primary);
+  border-color: rgba(77, 208, 255, 0.42);
+}
+
 @media (max-width: 760px) {
   .summary-panel {
     grid-template-columns: 1fr;
