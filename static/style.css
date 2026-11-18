@@ -418,6 +418,23 @@ button:active {
   padding: 10px;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo {
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
+  box-shadow: 0 10px 28px rgba(232, 170, 92, 0.16);
+}
+
+.brand-lockup .eyebrow {
+  margin-bottom: 4px;
+}
+
 @media (max-width: 760px) {
   .summary-panel {
     grid-template-columns: 1fr;
@@ -443,5 +460,10 @@ button:active {
   .topbar-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .brand-logo {
+    width: 58px;
+    height: 58px;
   }
 }

@@ -1,8 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#15100d"/>
-  <rect x="112" y="100" width="232" height="312" rx="82" fill="#f4cf9b" stroke="#e8aa5c" stroke-width="18"/>
-  <rect x="344" y="184" width="70" height="144" rx="34" fill="#f4cf9b" stroke="#e8aa5c" stroke-width="18"/>
-  <path d="M152 280c45 28 108 28 152 0" fill="none" stroke="#c56d38" stroke-width="18" stroke-linecap="round"/>
-  <circle cx="228" cy="220" r="52" fill="#fff3df"/>
-  <text x="228" y="238" text-anchor="middle" font-family="Arial, sans-serif" font-size="58" font-weight="700" fill="#7a4428">MM</text>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b1a12"/>
+      <stop offset="1" stop-color="#0d0907"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd88f"/>
+      <stop offset="0.48" stop-color="#e9a85d"/>
+      <stop offset="1" stop-color="#a85d35"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="url(#background)"/>
+  <circle cx="256" cy="256" r="202" fill="#22150f" stroke="#8f5a37" stroke-width="8"/>
+  <path d="M128 170h188v198c0 36-29 65-65 65h-58c-36 0-65-29-65-65V170z" fill="url(#gold)"/>
+  <path d="M316 216h34c52 0 82 34 82 78s-30 78-82 78h-34v-42h34c24 0 38-14 38-36s-14-36-38-36h-34v-42z" fill="#d98f52" stroke="#ffd88f" stroke-width="12"/>
+  <path d="M171 126c0-23 18-41 41-41M225 126c0-23 18-41 41-41M279 126c0-23 18-41 41-41" fill="none" stroke="#d98f52" stroke-width="16" stroke-linecap="round"/>
+  <path d="M166 330c42 30 106 30 148 0" fill="none" stroke="#7a4428" stroke-width="14" stroke-linecap="round"/>
+  <text x="240" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="800" fill="#5a321f">M</text>
 </svg>
