@@ -22,6 +22,8 @@ const targetMinusBtn = document.querySelector('#targetMinusBtn');
 const targetPlusBtn = document.querySelector('#targetPlusBtn');
 const qrImageInput = document.querySelector('#qrImageInput');
 const installAppBtn = document.querySelector('#installAppBtn');
+const telemetryBadge = document.querySelector('#telemetryBadge');
+const targetSourceBadge = document.querySelector('#targetSourceBadge');
 
 let installPrompt = null;
 
@@ -106,6 +108,16 @@ function updateUi(data) {
 
   renderChart(data.history);
   syncTargetControls(data.target);
+
+  if (telemetryBadge) {
+    telemetryBadge.textContent = data.wokwi_connected ? 'Live: Wokwi' : 'Live: Simulation';
+    telemetryBadge.classList.toggle('on', data.wokwi_connected);
+    telemetryBadge.classList.toggle('off', !data.wokwi_connected);
+  }
+
+  if (targetSourceBadge) {
+    targetSourceBadge.textContent = `Target: ${data.target_source || 'APP'}`;
+  }
 }
 
 async function refreshStatus() {

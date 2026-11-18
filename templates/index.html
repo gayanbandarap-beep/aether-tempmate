@@ -75,7 +75,11 @@
         <section class="card graph-panel">
           <div class="graph-header">
             <h2>Temperature history</h2>
-            <span id="heaterBadge" class="heater-badge off">Heater OFF</span>
+            <div class="graph-badges">
+              <span id="telemetryBadge" class="heater-badge off">Live source: checking</span>
+              <span id="targetSourceBadge" class="heater-badge off">Target: APP</span>
+              <span id="heaterBadge" class="heater-badge off">Heater OFF</span>
+            </div>
           </div>
           <svg id="chart" viewBox="0 0 500 220" preserveAspectRatio="none" aria-label="Temperature history chart"></svg>
         </section>

@@ -47,14 +47,16 @@ class MorphMugController:
     history: list[dict[str, Any]] = field(default_factory=list)
     lock: threading.Lock = field(default_factory=threading.Lock)
     wokwi_connected: bool = False
+    target_source: str = "APP"
 
     def __post_init__(self) -> None:
         self.lower_threshold = max(MIN_TARGET, self.target - 2.0)
         self._record_point()
 
-    def set_target(self, value: float) -> None:
+    def set_target(self, value: float, source: str = "APP") -> None:
         target = max(MIN_TARGET, min(MAX_TARGET, float(value)))
         self.target = round(target, 1)
+        self.target_source = source
         self.lower_threshold = round(max(MIN_TARGET, self.target - 0.2), 1)
         self.holding_at_target = abs(self.temperature - self.target) <= 0.2
         if self.holding_at_target:
@@ -97,6 +99,7 @@ class MorphMugController:
         self.manual_stop = False
         self.history = []
         self.holding_at_target = False
+        self.target_source = "APP"
         self._record_point()
 
     def _record_point(self) -> None:
@@ -154,6 +157,8 @@ class MorphMugController:
                 "manual_stop": self.manual_stop,
                 "system_enabled": self.system_enabled,
                 "holding_at_target": self.holding_at_target,
+                "wokwi_connected": self.wokwi_connected,
+                "target_source": self.target_source,
                 "history": list(self.history),
             }
 
@@ -260,6 +265,25 @@ def api_telemetry():
 def api_control():
     if not telemetry_authorized():
         return jsonify({"error": "Unauthorized Wokwi device"}), 401
+    return jsonify(controller.update())
+
+
+@app.route("/api/control/target", methods=["POST"])
+def api_control_target():
+    if not telemetry_authorized():
+        return jsonify({"error": "Unauthorized Wokwi device"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        target = float(payload.get("target"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "A numeric target temperature is required"}), 400
+
+    if target < MIN_TARGET or target > MAX_TARGET:
+        return jsonify({"error": f"Target must be between {MIN_TARGET} and {MAX_TARGET} C"}), 400
+
+    controller.wokwi_connected = True
+    controller.set_target(target, source="WOKWI")
     return jsonify(controller.update())
 
 

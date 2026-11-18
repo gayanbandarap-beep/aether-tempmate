@@ -435,6 +435,13 @@ button:active {
   margin-bottom: 4px;
 }
 
+.graph-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 @media (max-width: 760px) {
   .summary-panel {
     grid-template-columns: 1fr;
