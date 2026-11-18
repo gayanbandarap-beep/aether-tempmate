@@ -41,6 +41,7 @@
           <div class="metric">
             <span class="label">System status</span>
             <strong id="stateValue" class="state-pill">OFF</strong>
+            <small id="lcdStatusText" class="range-note">Waiting for device</small>
           </div>
         </section>
 
@@ -52,14 +53,14 @@
               <label for="targetRange">Set target temperature</label>
               <strong id="targetReadout">36.0 °C</strong>
             </div>
-            <input id="targetRange" type="range" min="32.5" max="40" step="0.1" value="36" />
+            <input id="targetRange" type="range" min="32.5" max="60" step="0.1" value="36" />
             <div class="target-step-row">
               <button id="targetMinusBtn" type="button" aria-label="Decrease target">−</button>
-              <input id="targetInput" type="number" min="32.5" max="40" step="0.1" value="36" />
+              <input id="targetInput" type="number" min="32.5" max="60" step="0.1" value="36" />
               <button id="targetPlusBtn" type="button" aria-label="Increase target">+</button>
               <button id="applyTargetBtn" type="button">Apply target</button>
             </div>
-            <small class="range-note">Safe operating range: 32.5 °C to 40.0 °C</small>
+            <small class="range-note">Safe operating range: 32.5 °C to 60.0 °C</small>
           </div>
 
           <div class="button-row">

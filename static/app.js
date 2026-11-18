@@ -24,6 +24,7 @@ const qrImageInput = document.querySelector('#qrImageInput');
 const installAppBtn = document.querySelector('#installAppBtn');
 const telemetryBadge = document.querySelector('#telemetryBadge');
 const targetSourceBadge = document.querySelector('#targetSourceBadge');
+const lcdStatusText = document.querySelector('#lcdStatusText');
 
 let installPrompt = null;
 
@@ -118,6 +119,19 @@ function updateUi(data) {
   if (targetSourceBadge) {
     targetSourceBadge.textContent = `Target: ${data.target_source || 'APP'}`;
   }
+
+  lcdStatusText.textContent = data.sensor_error
+    ? 'SENSOR ERROR'
+    : data.manual_stop
+      ? 'MANUAL STOP'
+      : data.system_enabled
+        ? 'SYSTEM ON'
+        : 'SYSTEM OFF';
+
+  if (lcdStatusText) {
+    const heaterText = data.heater_on ? 'ON' : 'OFF';
+    lcdStatusText.textContent = `Cur ${data.temperature.toFixed(1)}°C · Target ${data.target.toFixed(1)}°C · Heater ${heaterText}`;
+  }
 }
 
 async function refreshStatus() {
@@ -131,8 +145,8 @@ async function refreshStatus() {
 
 applyTargetBtn.addEventListener('click', async () => {
   const target = Number(targetInput.value);
-  if (Number.isNaN(target) || target < 32.5 || target > 40) {
-    qrStatus.textContent = 'Target must stay between 32.5 °C and 40.0 °C.';
+  if (Number.isNaN(target) || target < 32.5 || target > 60) {
+    qrStatus.textContent = 'Target must stay between 32.5 °C and 60.0 °C.';
     return;
   }
 
@@ -260,7 +274,7 @@ verifyQrBtn.addEventListener('click', async () => {
 });
 
 function syncTargetControls(value) {
-  const target = Math.max(32.5, Math.min(40, Number(value)));
+  const target = Math.max(32.5, Math.min(60, Number(value)));
   const normalized = Math.round(target * 10) / 10;
   targetInput.value = normalized.toFixed(1);
   targetRange.value = normalized;
@@ -270,7 +284,7 @@ function syncTargetControls(value) {
 targetRange.addEventListener('input', () => syncTargetControls(targetRange.value));
 targetInput.addEventListener('input', () => {
   const value = Number(targetInput.value);
-  if (!Number.isNaN(value) && value >= 32.5 && value <= 40) {
+  if (!Number.isNaN(value) && value >= 32.5 && value <= 60) {
     syncTargetControls(value);
   }
 });

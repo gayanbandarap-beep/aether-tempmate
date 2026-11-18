@@ -144,14 +144,14 @@ void displayTemperature(float temperature, bool sensorError) {
   if (sensorError || isnan(temperature)) {
     lcd.print("HEATER OFF");
   } else {
-    String heater = digitalRead(HEATER_PIN) == HIGH ? "ON " : "OFF";
-    lcd.printf("Tgt:%.1f %s", currentTarget, heater.c_str());
+    String heater = digitalRead(HEATER_PIN) == HIGH ? "ON" : "OFF";
+    lcd.printf("Tgt:%.1fC %s", currentTarget, heater.c_str());
   }
 }
 
 void setServerTarget(float target) {
   if (target < 32.5) target = 32.5;
-  if (target > 40.0) target = 40.0;
+  if (target > 60.0) target = 60.0;
 
   currentTarget = target;
 

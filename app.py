@@ -13,7 +13,7 @@ from flask import Flask, jsonify, render_template, request
 app = Flask(__name__)
 APP_SECRET = "AETHER_MORPH_MUG_ACCESS_SECRET_2026"
 MIN_TARGET = 32.5
-MAX_TARGET = 40.0
+MAX_TARGET = 60.0
 TELEMETRY_KEY = "AETHER-MORPH-MUG-2026"
 
 
