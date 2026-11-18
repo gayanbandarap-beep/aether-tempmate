@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.vercel/
+*.log
+tempre.zip
+cookies.txt
+tempmate-cookies.txt
+GitInstaller.exe
+gh.msi

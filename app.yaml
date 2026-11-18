@@ -1,0 +1,9 @@
+runtime: python312
+entrypoint: gunicorn -b :$PORT app:app
+
+env_variables:
+  APP_SECRET: "AETHER_TEMPMATE_ACCESS_SECRET_2026"
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 2
