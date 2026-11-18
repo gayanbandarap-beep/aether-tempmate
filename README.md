@@ -1,6 +1,6 @@
-# TempMate App
+# Morph Mug App
 
-This project creates a small local web dashboard for the TempMate concept described in the student prototype report.
+This project creates a small local web dashboard for the Morph Mug concept described in the student prototype report.
 
 ## Features
 

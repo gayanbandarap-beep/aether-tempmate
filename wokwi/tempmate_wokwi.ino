@@ -1,4 +1,4 @@
-// Aether TempMate - Wokwi ESP32 direct telemetry
+// Morph Mug - Wokwi ESP32 direct telemetry
 // Add DHT22 to Wokwi and connect DATA to GPIO 15.
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -14,7 +14,7 @@ const char* WIFI_SSID = "Wokwi-GUEST";
 const char* WIFI_PASSWORD = "";
 const char* SERVER_URL = "https://aether-tempmate.vercel.app/api/telemetry";
 const char* CONTROL_URL = "https://aether-tempmate.vercel.app/api/control";
-const char* TELEMETRY_KEY = "AETHER-WOKWI-2026";
+#define TELEMETRY_KEY "AETHER-WOKWI-2026"
 
 void setup() {
   Serial.begin(115200);

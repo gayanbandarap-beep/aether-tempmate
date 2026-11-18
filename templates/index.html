@@ -3,31 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aether TempMate Control</title>
+    <title>Morph Mug - Aether Liquid Control</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">AETHER</p>
-          <h1>TempMate liquid temperature control</h1>
+          <p class="eyebrow">AETHER MORPH MUG</p>
+          <h1>Morph Mug liquid temperature control</h1>
         </div>
-        <div class="topbar-actions">
-          <span id="authorityBadge" class="authority-badge locked">Authority locked</span>
-          <button id="logoutBtn" class="ghost-button" hidden>End authority session</button>
-          <button id="resetBtn" class="ghost-button">Reset</button>
-        </div>
+        <button id="resetBtn" class="ghost-button">Reset</button>
       </header>
-
-      <section id="authorityGate" class="card authority-gate">
-        <div>
-          <p class="eyebrow">AUTHORIZED CONTROL</p>
-          <h2>Scan the authority barcode</h2>
-          <p>Temperature controls remain locked until an approved barcode is verified.</p>
-        </div>
-        <button id="startScanBtn" class="primary-button">Start barcode scan</button>
-      </section>
 
       <main class="dashboard">
         <section class="card summary-panel">
@@ -49,24 +36,18 @@
           <h2>Temperature controls</h2>
 
           <div class="target-row">
-            <label for="targetInput">Set target temperature</label>
-            <div class="target-adjuster">
-              <button id="targetMinusBtn" class="target-step-button" type="button" aria-label="Decrease target">−</button>
-              <div class="target-input-wrap">
-                <input id="targetInput" type="number" min="32.5" max="40" step="0.5" value="36" />
-                <span>°C</span>
-              </div>
-              <button id="targetPlusBtn" class="target-step-button" type="button" aria-label="Increase target">+</button>
+            <div class="target-heading">
+              <label for="targetRange">Set target temperature</label>
+              <strong id="targetReadout">36.0 °C</strong>
+            </div>
+            <input id="targetRange" type="range" min="32.5" max="40" step="0.1" value="36" />
+            <div class="target-step-row">
+              <button id="targetMinusBtn" type="button" aria-label="Decrease target">−</button>
+              <input id="targetInput" type="number" min="32.5" max="40" step="0.1" value="36" />
+              <button id="targetPlusBtn" type="button" aria-label="Increase target">+</button>
               <button id="applyTargetBtn" type="button">Apply target</button>
             </div>
-            <div class="target-presets" aria-label="Common target temperatures">
-              <button type="button" class="target-preset" data-target="35">35°C</button>
-              <button type="button" class="target-preset" data-target="36">36°C</button>
-              <button type="button" class="target-preset" data-target="37">37°C</button>
-              <button type="button" class="target-preset" data-target="38">38°C</button>
-              <button type="button" class="target-preset" data-target="40">40°C</button>
-            </div>
-            <small id="targetRangeNote" class="range-note">Safe range: 32.5 °C to 40.0 °C</small>
+            <small class="range-note">Safe operating range: 32.5 °C to 40.0 °C</small>
           </div>
 
           <div class="button-row">
@@ -82,21 +63,25 @@
         <section class="card graph-panel">
           <div class="graph-header">
             <h2>Temperature history</h2>
-            <div class="graph-badges">
-              <span id="telemetryBadge" class="heater-badge off">Simulation data</span>
-              <span id="heaterBadge" class="heater-badge off">Heater OFF</span>
-            </div>
+            <span id="heaterBadge" class="heater-badge off">Heater OFF</span>
           </div>
           <svg id="chart" viewBox="0 0 500 220" preserveAspectRatio="none" aria-label="Temperature history chart"></svg>
         </section>
 
         <section class="card qr-panel">
-          <h2>Secure barcode access</h2>
+          <h2>Secure QR scanner</h2>
           <div class="qr-layout">
+            <div class="scanner-box">
+              <video id="qrVideo" autoplay playsinline muted></video>
+              <canvas id="qrCanvas" width="280" height="210"></canvas>
+              <div class="scanner-overlay"></div>
+              <button id="startQrScanBtn" class="scanner-start-button" type="button">Start QR scanner</button>
+            </div>
             <div class="qr-info">
-              <p id="qrStatus">Ready for secure barcode authentication.</p>
-              <input id="qrCodeInput" type="text" placeholder="Scan or paste authority barcode" autocomplete="off" />
-              <button id="verifyQrBtn" class="primary-button">Verify barcode</button>
+              <p id="qrStatus">Press “Start QR scanner”, then point your camera at a Morph Mug QR code.</p>
+              <input id="qrImageInput" type="file" accept="image/*" capture="environment" aria-label="Scan QR code from image" />
+              <input id="qrCodeInput" type="text" placeholder="Scanned QR code appears here" />
+              <button id="verifyQrBtn" class="primary-button">Verify access</button>
             </div>
           </div>
         </section>
@@ -104,7 +89,7 @@
         <section class="card safety-panel">
           <h2>Safety & operation</h2>
           <ul>
-            <li id="safetyMessage">The heating system will operate only after valid barcode authority verification.</li>
+            <li id="safetyMessage">Morph Mug heats only until the selected target is reached, then holds that exact temperature.</li>
             <li>Use only a bottle rated for warm liquids and never seal it during a test.</li>
             <li>Keep electrical parts dry and disconnect power after testing.</li>
           </ul>
@@ -112,6 +97,7 @@
       </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
   </body>
 </html>
