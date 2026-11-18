@@ -58,6 +58,12 @@ input {
   margin-bottom: 20px;
 }
 
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--primary);
@@ -427,5 +433,15 @@ button:active {
   .button-row,
   .qr-layout {
     grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .topbar-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

@@ -1,0 +1,19 @@
+{
+  "name": "Morph Mug - Aether Liquid Control",
+  "short_name": "Morph Mug",
+  "description": "Live liquid temperature control and secure barcode access.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#15100d",
+  "theme_color": "#e8aa5c",
+  "icons": [
+    {
+      "src": "/static/icons/morph-mug-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

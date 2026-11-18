@@ -21,6 +21,9 @@ const targetReadout = document.querySelector('#targetReadout');
 const targetMinusBtn = document.querySelector('#targetMinusBtn');
 const targetPlusBtn = document.querySelector('#targetPlusBtn');
 const qrImageInput = document.querySelector('#qrImageInput');
+const installAppBtn = document.querySelector('#installAppBtn');
+
+let installPrompt = null;
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, {
@@ -261,6 +264,32 @@ targetInput.addEventListener('input', () => {
 });
 targetMinusBtn.addEventListener('click', () => syncTargetControls(Number(targetInput.value || 36) - 0.1));
 targetPlusBtn.addEventListener('click', () => syncTargetControls(Number(targetInput.value || 36) + 0.1));
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  if (installAppBtn) installAppBtn.hidden = false;
+});
+
+if (installAppBtn) {
+  installAppBtn.addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    installAppBtn.hidden = true;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  if (installAppBtn) installAppBtn.hidden = true;
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/static/sw.js').catch(console.error);
+  });
+}
 
 startQrScanBtn.addEventListener('click', startQrScanner);
 refreshStatus();
