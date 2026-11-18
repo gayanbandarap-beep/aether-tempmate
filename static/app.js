@@ -11,6 +11,7 @@ const targetRangeNote = document.querySelector('#targetRangeNote');
 const systemToggleBtn = document.querySelector('#systemToggleBtn');
 const stopBtn = document.querySelector('#stopBtn');
 const sensorErrorBtn = document.querySelector('#sensorErrorBtn');
+const verifyQrBtn = document.querySelector('#verifyQrBtn');
 const qrCodeInput = document.querySelector('#qrCodeInput');
 const qrStatus = document.querySelector('#qrStatus');
 const resetBtn = document.querySelector('#resetBtn');
@@ -123,8 +124,6 @@ function updateUi(data) {
         : 'The system is currently disabled for safety.';
 
   renderChart(data.history);
-
-  telemetryBadge.textContent = `Telemetry: ${data.telemetryStatus}`;
 }
 
 async function refreshStatus() {
