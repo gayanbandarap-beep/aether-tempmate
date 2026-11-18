@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "author": "Morph Mug",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 20, "left": 190, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht1", "top": 30, "left": 20, "attrs": { "temperature": "24", "humidity": "40" } },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": 180, "left": 20, "attrs": { "pins": "i2c" } },
+    { "type": "wokwi-pushbutton", "id": "minus", "top": 290, "left": 70, "attrs": { "color": "blue", "label": "TARGET -" } },
+    { "type": "wokwi-pushbutton", "id": "plus", "top": 290, "left": 220, "attrs": { "color": "red", "label": "TARGET +" } },
+    { "type": "wokwi-led", "id": "heater", "top": 290, "left": 390, "attrs": { "color": "orange", "label": "HEATER" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 350, "left": 390, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "dht1:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "dht1:SDA", "esp:D15", "green", [ "v0" ] ],
+    [ "dht1:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "lcd1:VCC", "esp:VCC.1", "red", [ "v0" ] ],
+    [ "lcd1:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "lcd1:SDA", "esp:D21", "blue", [ "v0" ] ],
+    [ "lcd1:SCL", "esp:D22", "yellow", [ "v0" ] ],
+    [ "minus:1.l", "esp:D25", "green", [ "v0" ] ],
+    [ "minus:2.l", "esp:GND.3", "black", [ "v0" ] ],
+    [ "plus:1.l", "esp:D26", "green", [ "v0" ] ],
+    [ "plus:2.l", "esp:GND.4", "black", [ "v0" ] ],
+    [ "heater:A", "esp:D2", "orange", [ "v0" ] ],
+    [ "heater:C", "r1:1", "black", [ "v0" ] ],
+    [ "r1:2", "esp:GND.5", "black", [ "v0" ] ]
+  ]
+}

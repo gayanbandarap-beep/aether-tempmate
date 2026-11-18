@@ -1,0 +1,7 @@
+[wokwi]
+version = 1
+firmware = "tempmate_wokwi.ino"
+elf = ""
+
+[gdb]
+port = 3333
