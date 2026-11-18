@@ -175,31 +175,6 @@ void setServerTarget(float target) {
   http.end();
 }
 
-void setup() {
-  Serial.begin(115200);
-  dht.begin();
-  pinMode(HEATER_PIN, OUTPUT);
-  pinMode(TARGET_MINUS_PIN, INPUT_PULLUP);
-  pinMode(TARGET_PLUS_PIN, INPUT_PULLUP);
-  digitalWrite(HEATER_PIN, LOW);
-
-  lcd.begin();
-  lcd.backlight();
-  lcd.print("Connecting to WiFi");
-
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(300);
-    Serial.print(".");
-  }
-  Serial.println("\nConnected");
-  lcd.clear();
-  lcd.print("WiFi Connected");
-  delay(1000);
-  lcd.clear();
-}
-
 void loop() {
   unsigned long now = millis();
   if (now - lastTargetButtonMs >= 250) {

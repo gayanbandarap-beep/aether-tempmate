@@ -120,14 +120,6 @@ function updateUi(data) {
     targetSourceBadge.textContent = `Target: ${data.target_source || 'APP'}`;
   }
 
-  lcdStatusText.textContent = data.sensor_error
-    ? 'SENSOR ERROR'
-    : data.manual_stop
-      ? 'MANUAL STOP'
-      : data.system_enabled
-        ? 'SYSTEM ON'
-        : 'SYSTEM OFF';
-
   if (lcdStatusText) {
     const heaterText = data.heater_on ? 'ON' : 'OFF';
     lcdStatusText.textContent = `Cur ${data.temperature.toFixed(1)}°C · Target ${data.target.toFixed(1)}°C · Heater ${heaterText}`;
