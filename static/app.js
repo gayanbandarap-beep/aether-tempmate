@@ -25,6 +25,8 @@ const installAppBtn = document.querySelector('#installAppBtn');
 const telemetryBadge = document.querySelector('#telemetryBadge');
 const targetSourceBadge = document.querySelector('#targetSourceBadge');
 const lcdStatusText = document.querySelector('#lcdStatusText');
+const officialInstallBtn = document.querySelector('#officialInstallBtn');
+const copyOfficialLinkBtn = document.querySelector('#copyOfficialLinkBtn');
 
 let installPrompt = null;
 
@@ -356,3 +358,27 @@ qrImageInput.addEventListener('change', async () => {
     qrStatus.textContent = 'Unable to read the selected image.';
   }
 });
+
+if (officialInstallBtn) {
+  officialInstallBtn.addEventListener('click', async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+    } else {
+      alert('Use your browser menu: “Install app” or “Add to Home screen”.');
+    }
+  });
+}
+
+if (copyOfficialLinkBtn) {
+  copyOfficialLinkBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.origin);
+      copyOfficialLinkBtn.textContent = 'Official link copied';
+      setTimeout(() => { copyOfficialLinkBtn.textContent = 'Copy official link'; }, 1800);
+    } catch (error) {
+      copyOfficialLinkBtn.textContent = 'Copy failed';
+    }
+  });
+}
