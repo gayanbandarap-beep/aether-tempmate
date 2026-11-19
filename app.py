@@ -8,9 +8,16 @@ import threading
 import time
 from typing import Any
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, redirect, session, url_for
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("MORPH_MUG_SESSION_SECRET", "MORPH-MUG-PRESENTATION-SESSION-2026")
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=bool(os.environ.get("VERCEL")),
+)
+PRESENTATION_PASSWORD = os.environ.get("MORPH_MUG_PRESENTATION_PASSWORD", "MorphMug2026")
 APP_SECRET = "AETHER_MORPH_MUG_ACCESS_SECRET_2026"
 MIN_TARGET = 32.5
 MAX_TARGET = 60.0
@@ -164,6 +171,48 @@ class MorphMugController:
 
 
 controller = MorphMugController()
+
+
+@app.before_request
+def require_private_session():
+    public_endpoints = {
+        "login",
+        "static",
+        "api_telemetry",
+        "api_control",
+        "api_control_target",
+    }
+
+    if request.endpoint in public_endpoints:
+        return None
+
+    if request.endpoint and request.endpoint.startswith("api_"):
+        if not session.get("morph_mug_private"):
+            return jsonify({"error": "Presentation login required"}), 401
+
+    if not session.get("morph_mug_private"):
+        if request.endpoint in {"index", "download", "official"}:
+            return redirect(url_for("login", next=request.path))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        if hmac.compare_digest(password, PRESENTATION_PASSWORD):
+            session["morph_mug_private"] = True
+            session.permanent = True
+            next_url = request.args.get("next") or url_for("index")
+            return redirect(next_url)
+        error = "Incorrect presentation password."
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.pop("morph_mug_private", None)
+    return redirect(url_for("login"))
 
 
 @app.route("/")
