@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#e8aa5c" />
+    <title>Official Morph Mug System</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}" />
+    <link rel="icon" href="{{ url_for('static', filename='icons/morph-mug-icon.svg') }}" type="image/svg+xml" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <main class="download-page">
+      <section class="download-hero official-system-hero">
+        <img class="download-logo" src="{{ url_for('static', filename='icons/morph-mug-icon.svg') }}" alt="Morph Mug" />
+        <p class="eyebrow">OFFICIAL MORPH MUG SYSTEM</p>
+        <h1>App • Backend • Wokwi</h1>
+        <p class="download-lead">One complete Morph Mug system: install the app, control temperature from 32.5°C to 60°C, receive live DHT22 data, and synchronize heater and target states.</p>
+        <div class="official-download-actions">
+          <a class="primary-button" href="{{ url_for('download') }}">Official download page</a>
+          <a class="secondary-button" href="{{ url_for('index') }}">Open live control app</a>
+        </div>
+        <div class="official-link-box">
+          <span>Official app URL</span>
+          <strong id="officialAppLink">Loading…</strong>
+          <button id="copyOfficialLinkBtn" class="ghost-button" type="button">Copy</button>
+        </div>
+      </section>
+
+      <section class="download-feature-grid official-feature-grid">
+        <article>
+          <strong>Frontend app</strong>
+          <p>Temperature slider and preset controls, live chart, heater state, QR scanner, PWA install, Android and Windows support.</p>
+        </article>
+        <article>
+          <strong>Backend APIs</strong>
+          <p><code>/api/status</code> · <code>/api/target</code> · <code>/api/telemetry</code> · <code>/api/control</code> · <code>/api/control/target</code></p>
+        </article>
+        <article>
+          <strong>Wokwi hardware</strong>
+          <p>DHT22 on GPIO 15, LCD SDA/SCL on 21/22, heater on 2, target buttons on 25/26.</p>
+        </article>
+      </section>
+
+      <section class="download-feature-grid">
+        <article>
+          <strong>Live synchronization</strong>
+          <p>Current temperature, target, state, and heater status are shared by app and Wokwi display.</p>
+        </article>
+        <article>
+          <strong>Target range</strong>
+          <p>Users can set 32.5°C to 60°C using the app slider or physical +/- buttons.</p>
+        </article>
+        <article>
+          <strong>Official pages</strong>
+          <p>Main app: <code>/</code><br />Download: <code>/download</code><br />System details: <code>/official</code></p>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const officialAppLink = document.querySelector('#officialAppLink');
+      const copyButton = document.querySelector('#copyOfficialLinkBtn');
+      officialAppLink.textContent = window.location.origin;
+
+      copyButton.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(window.location.origin);
+        copyButton.textContent = 'Copied';
+        setTimeout(() => { copyButton.textContent = 'Copy'; }, 1600);
+      });
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js').catch(console.error);
+      }
+    </script>
+  </body>
+</html>

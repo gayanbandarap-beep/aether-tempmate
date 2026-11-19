@@ -176,6 +176,11 @@ def download() -> str:
     return render_template("download.html")
 
 
+@app.route("/official")
+def official() -> str:
+    return render_template("official.html")
+
+
 @app.route("/api/status")
 def api_status():
     return jsonify(controller.update())
