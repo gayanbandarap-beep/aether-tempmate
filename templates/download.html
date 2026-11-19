@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#e8aa5c" />
+    <title>Download Morph Mug | Official App</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}" />
+    <link rel="icon" href="{{ url_for('static', filename='icons/morph-mug-icon.svg') }}" type="image/svg+xml" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <main class="download-page">
+      <section class="download-hero">
+        <img class="download-logo" src="{{ url_for('static', filename='icons/morph-mug-icon.svg') }}" alt="Morph Mug official app logo" />
+        <p class="eyebrow">OFFICIAL MORPH MUG DOWNLOAD</p>
+        <h1>Control your mug with Morph Mug</h1>
+        <p class="download-lead">Monitor temperature, set targets, control heating, and use secure barcode access from Android or Windows.</p>
+
+        <div class="official-download-actions">
+          <button id="officialInstallBtn" class="primary-button" type="button">Download / Install App</button>
+          <a class="secondary-button" href="{{ url_for('index') }}">Open Morph Mug</a>
+        </div>
+
+        <div class="official-link-box">
+          <span>Official app link</span>
+          <strong id="officialAppLink">Loading…</strong>
+          <button id="copyOfficialLinkBtn" class="ghost-button" type="button">Copy link</button>
+        </div>
+      </section>
+
+      <section class="download-feature-grid">
+        <article>
+          <strong>Android</strong>
+          <p>Open in Chrome, select “Install app”, or use Chrome menu → “Add to Home screen”.</p>
+        </article>
+        <article>
+          <strong>Windows</strong>
+          <p>Open in Edge or Chrome, choose “Install app” from the browser menu or address bar.</p>
+        </article>
+        <article>
+          <strong>Live control</strong>
+          <p>Temperature and heater control remain connected to the official Morph Mug server.</p>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const officialInstallBtn = document.querySelector('#officialInstallBtn');
+      const copyOfficialLinkBtn = document.querySelector('#copyOfficialLinkBtn');
+      const officialAppLink = document.querySelector('#officialAppLink');
+      let installPrompt = null;
+
+      officialAppLink.textContent = window.location.origin;
+
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        installPrompt = event;
+        officialInstallBtn.textContent = 'Install Morph Mug';
+      });
+
+      officialInstallBtn.addEventListener('click', async () => {
+        if (installPrompt) {
+          installPrompt.prompt();
+          await installPrompt.userChoice;
+          installPrompt = null;
+        } else {
+          alert('Open this page in Chrome or Edge, then choose “Install app” or “Add to Home screen”.');
+        }
+      });
+
+      copyOfficialLinkBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(window.location.origin);
+        copyOfficialLinkBtn.textContent = 'Copied';
+        setTimeout(() => { copyOfficialLinkBtn.textContent = 'Copy link'; }, 1600);
+      });
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js').catch(console.error);
+      }
+    </script>
+  </body>
+</html>

@@ -171,6 +171,11 @@ def index() -> str:
     return render_template("index.html")
 
 
+@app.route("/download")
+def download() -> str:
+    return render_template("download.html")
+
+
 @app.route("/api/status")
 def api_status():
     return jsonify(controller.update())
